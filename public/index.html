@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <form action="http://192.168.1.103:3002/interchange/" method="post">
+
+        <label for="action">Action:</label>
+
+        <select id="action" name="action">
+            <option value="purchaseBox">purchaseBox</option>
+            <option value="removePurchaseBox">removePurchaseBox</option>
+
+        </select>
+
+        <label for="id">buildingId:</label>
+        <input type="text" id="buildingId" value="5ea9dc825104231eb1eb052b" name="buildingId">
+        <br>
+        <br>
+
+        <p></p>
+
+        
+
+        <label for="id">boxId:</label>
+        <input type="text" id="boxId" value='0' name="boxId">
+        <br>
+        <br>
+
+        <input type="submit" value="Submit">
+        <p>No se esta validando</p>
+    </form>
+
+    <p>Form 2..............................................................</p>
+
+    <form action="http://192.168.1.103:3002/interchange/" method="post">
+        
+        <label for="action">Action:</label>
+
+        <select id="action" name="action">
+            <option value="addSimpleADS">addSimpleADS</option>
+
+        </select>
+
+        <label for="id">buildingId:</label>
+        <input type="text" id="buildingId" value="5ea9dc825104231eb1eb052b" name="buildingId">
+        <br>
+        <br>
+
+        <label for="id">boxId:</label>
+        <input type="text" id="boxId" value='0' name="boxId">
+        <br>
+        <br>
+
+        <label for="title">title:</label>
+        <input type="text" id="title" value="Titulo nuevo" name="title">
+        <br>
+        <br>
+
+
+        <label for="message">message:</label>
+        <input type="text" id="message" value="soy un mensaje" name="message">
+        <br>
+        <br>
+
+        <input type="submit" value="Submit">
+    </form>
+    
+    <p>Form 3..............................................................</p>
+
+    <form action="http://192.168.1.103:3002/upload/" method="post"  enctype="multipart/form-data">
+        
+        <label for="action">Action:</label>
+
+        <select id="action" name="action">
+            <option value="addBoxImage">addBoxImage</option>
+            <option value="removeBoxImage">removeBoxImage</option>
+
+        </select>
+
+        <label for="id">buildingId:</label>
+        <input type="text" id="buildingId" value="5ea9dc825104231eb1eb052b" name="buildingId">
+        <br>
+        <br>
+
+        <label for="id">boxId:</label>
+        <input type="text" id="boxId" value='0' name="boxId">
+        <br>
+        <br>
+
+        Select image to upload:
+        <input type="file" name="imageBox" id="imageBox">
+        <p></p>
+        <input type="submit" value="Upload Image" name="submit">
+
+
+    </form>    
+
+
+</body>
+
+</html>
