@@ -8,6 +8,8 @@ const fs = require('fs')
 var Jimp = require('jimp');
 
 
+
+
 var socket = io.connect(process.env.EXT_SERVER_MANAGER, { 
   reconnection: true ,
   query: {'whois':'bridge'} });
@@ -35,12 +37,17 @@ var socket = io.connect(process.env.EXT_SERVER_MANAGER, {
   app.get('/sender',(req,res) => {       
     res.sendFile(path.join(__dirname,'/public/','/index.html'))
   })
-  
-  
+
+
+
   app.post('/interchange/', function (req, res) {
     
     
     switch (req.body.action) {
+      case 'selected':
+      var data = { action : req.body.action,buildingId : req.body.buildingId, boxId : req.body.boxId }
+      socket.emit('bridgeToSocketServer',data)
+      break;
       case 'purchaseBox':
       var data = { action : req.body.action,buildingId : req.body.buildingId, boxId : req.body.boxId }
       socket.emit('bridgeToSocketServer',data)
