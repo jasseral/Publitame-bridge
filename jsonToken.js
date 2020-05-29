@@ -1,84 +1,131 @@
-//arreglar los moldes de respuestas
-// arreglar el login con valores de user y password decentes
-// meterle el veneno codificacion salt y no se q vaina
-
-const express = require('express')
-var mongoose = require('mongoose')
-var jwt = require('jsonwebtoken')
-
-
+// -------------- GENERAL IMPORTS ----------------
 require('dotenv').config()
+var env =  process.env
+const express = require('express')
+const interface = require('./vendors/mongoose/interface')
+const responseModel = require('./helpers/response')
+const cripto = require('./helpers/cripto')
 var app = express()
+var jwt = require('jsonwebtoken')
+// -------------- DATABASE INSTANCE ----------------
+const User = interface.connection.model('User', interface.UserSchema)
+// -------------- MIDDLEWARES ----------------
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
-
-const conn = process.env.DB_STRING
-const connection = mongoose.createConnection(conn, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-
-const UserSchema = new mongoose.Schema({
-    firstname : String,
-    lastname : String,
-    username: String, 
-    hash: String,
-    salt: String
-})
-
 // -------------- ALLOW CORS POLICY ----------------
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*"); 
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-  });
+  res.header("Access-Control-Allow-Origin", "*") 
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+  next()
+})
 
+// -------------- REGISTER USER ROUTE ----------------
+app.post('/register', (req, res) => {
+  
+  //Validations
+  // If the username in already taken
+  User.findOne({ username: req.body.username })
+  .then((user) => { 
+    if(user){
+      res.status(200)
+      .send(responseModel('error',null,env.EMAIL_ALREADY_TAKEN)) 
+    }else{
+      // Register the new user
+      var password = req.body.password
+      const saltHash = cripto.genPassword(password)  
+      const newUser = new User({
+        firstname: req.body.firstname,
+        lastname: req.body.lastname,
+        username: req.body.username,
+        verified : false,
+        hash: saltHash.hash,
+        salt: saltHash.salt
+      })
+      newUser.save()
+      .then((user) => {
+        res.status(200)
+        .send(responseModel('successful',null,env.USER_CREATED_SUCCESSFUL))
+        
+      }).catch(err=>{
+        res.status(200)
+        .send(responseModel('error',null,err.message))
+      })
+    }
+  })
+  
+})
 
-const User = connection.model('User', UserSchema)
-
-// ARREGLAR LOS PUTOS CODIGOS DE RESPUESTA POR ALGO MAS RE PROOOO NO SEAS PEO 
-// CAMBIAR ESTA VAINA A POST  
-app.get('/token', (req, res) => {
-    
-    var username = 'jasser.garcia@gmail.com'
-    User.findOne({ username: username })
-    
-    .then((user) => {
-        if (!user) { res.status(401).send({error:username,detail:'User not found'}); }
-      
+// -------------- GENERATE TOKEN ROUTE ----------------
+app.post('/auth', (req, res) => {
+  
+  var username = req.body.username
+  var password = req.body.password  
+  
+  User.findOne({ username: username })
+  .then((user) => {
+    // User validation
+    if (!user) { 
+      res
+      .status(401)
+      .send(responseModel('error',null,env.USER_NOT_FOUND_MESSAGE))}
+      // Password validation 
+      const isValid = cripto.validPassword(password, user.hash, user.salt);
+      if (isValid) {
         jwt.sign({
-            exp: Math.floor(Date.now() / 1000) + (60 * 60), // one hour duration
-            data: 'foobar'
-        }
-        , process.env.SECRET_TOKEN_PHRASE,
+          exp: Math.floor(Date.now() / 1000) + (60 * 60), 
+          data: username
+        },env.SECRET_TOKEN_PHRASE,
         function(err,token){
-            if (err) { console.error(err) }
-            res.send( `${token}`)      
+          if (err) { console.error(err) }
+          //Inject values from User  
+          var data = {
+            token : token,
+            username : user.username,
+            firstname : user.firstname,
+            lastname : user.lastname,
+            verified : user.verified
+          }
+          res.status(200)
+          .send(responseModel('successful',data,env.TOKEN_GENERATED_SUCCESSFUL))
         })
-       
-    })
-    .catch((err) => {   
-        console.error(err)
-    })
-    
-})
-
-
-
-app.get('/validate/:value', (req, res) => {
-    try {
-        var decoded = jwt.verify(req.params.value, process.env.SECRET_TOKEN_PHRASE);
-        res.send(decoded.data) 
-      } catch(err) {
-        if (err) {res.status(401).send({error:err.message}); }
+      } else {
+        res
+        .status(401)
+        .send(responseModel('error',null,env.PASSWORD_NOT_MATCH_MESSAGE))
       }
-    
-})
-
-
-
-
-
-app.listen(process.env.LOCAL_PORT_BRIDGE, function () {
-    console.log(process.env.MESSAGE_ON_CONNECT_START)
-})
+      
+    })
+    //Find user catch
+    .catch((err) => {   
+      console.error(err)
+    })
+  })
+  
+  // -------------- VALIDATE TOKEN ROUTE ----------------
+  app.post('/auth/validation', (req, res) => {
+    var token = req.body.token
+    try {
+      var decoded = jwt.verify(token, env.SECRET_TOKEN_PHRASE)
+      res.status(200)
+      .send(responseModel(
+        'successful',
+        env.TOKEN_DECODED_SUCCESSFUL,
+        decoded.data))
+      } catch(err) {
+        if (err) {
+          res
+          .status(401)
+          .send(responseModel(
+            'error',
+            env.TOKEN_DECODED_ERROR,
+            err.message))      
+          }
+        }
+        
+      })
+      
+      
+   app.listen(env.LOCAL_PORT_BRIDGE,() => {
+        console.log(env.MESSAGE_ON_CONNECT_START)
+   })
+      
