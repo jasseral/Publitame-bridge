@@ -1,23 +1,36 @@
+// -------------- GENERAL IMPORTS ----------------
+require('dotenv').config()
 const sgMail = require('@sendgrid/mail');
 
-sgMail.setApiKey('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');
-const msg = {
-  to: 'jasser.garcia@gmail.com',
-  from: 'publitame@gmail.com',
-  subject: 'Welcome to publitame',
-  text: 'You are on your way! Lets confirm your email address.',
-  html: '<strong>You are on your way! Lets confirm your email address.</strong>'
-};
-//ES6
-sgMail
-  .send(msg)
-  .then(() => {}, error => {
-    console.error(error);
+const sendMail =(to,subject,text)=> {
 
-    if (error.response) {
-      console.error(error.response.body)
-    }
-  });
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+  
+  const msg = {
+    to: to,
+    from: {
+      email : 'notification@publitame.co',
+      name : 'Publitame'
+    },
+    subject: subject,
+    text: text,
+    html: text
+  };
 
+  
+
+
+  // html: '<strong>You are on your way! Lets confirm your email address.</strong>'
+  
+
+  return sgMail.send(msg)
+    
+
+}
+
+// subject: 'Welcome to publitame',
+// text: 'You are on your way! Lets confirm your email address.',
+
+exports.sendMail = sendMail;
 
 

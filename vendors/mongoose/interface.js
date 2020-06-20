@@ -10,10 +10,13 @@ const connection = mongoose.createConnection(conn, {
 const UserSchema = new mongoose.Schema({
     firstname : String,
     lastname : String,
+    phone : String,
     username: String, 
     verified : Boolean,
+    recoverykey : String,
     hash: String,
-    salt: String
+    salt: String,
+
 })
 
 exports.connection = connection
